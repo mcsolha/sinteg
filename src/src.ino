@@ -1,20 +1,32 @@
 // Example testing sketch for various DHT humidity/temperature sensors
 // Written by ladyada, public domain
+#include <ESP8266WiFi.h>
 #include "DHT.h"
-
-#define DHTPIN 13       // what digital pin DHT is connected to
-#define LDRPIN 4        // what digital pin LDR is connected to
-#define REEDSWITCHPIN 2 // what digital pin REED SWITCH is connected to
-
-#define DHTTYPE DHT11   // DHT 11
+#include "config.h"
 
 // Initialize DHT sensor.
 DHT dht(DHTPIN, DHTTYPE);
+WiFiClient client;
 
 void setup() {
   Serial.begin(115200);
   pinMode(REEDSWITCHPIN, INPUT_PULLUP);
-  Serial.println("DHTxx test!");
+
+  Serial.println("#####TCC!#####");
+  delay(700);
+
+  Serial.print("Connecting to ");
+  Serial.println(WLAN_SSID);
+
+  WiFi.begin(WLAN_SSID, WLAN_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+
+  Serial.println("WiFi connected");
+  Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
   dht.begin();
 }
@@ -57,10 +69,10 @@ void loop() {
   Serial.print(" *C ");
   Serial.print(hif);
   Serial.println(" *F");
-  
+
   Serial.print("LDR:  ");
   Serial.println(ldr_state);
-  
+
   Serial.print("REED SWITCH:  ");
   Serial.println(reed_state);
 }
