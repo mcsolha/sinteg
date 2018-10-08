@@ -1,26 +1,49 @@
 // Example testing sketch for various DHT humidity/temperature sensors
 // Written by ladyada, public domain
-#include "DHT.h"
-
-#define DHTPIN 13       // what digital pin DHT is connected to
-#define LDRPIN 4        // what digital pin LDR is connected to
-#define REEDSWITCHPIN 2 // what digital pin REED SWITCH is connected to
-
-#define DHTTYPE DHT11   // DHT 11
+#include <ESP8266WiFi.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>  
+#include <DHT.h>
+#include <DHT_U.h>
+#include "base.h"
 
 // Initialize DHT sensor.
 DHT dht(DHTPIN, DHTTYPE);
+WiFiClient client;
 
 void setup() {
   Serial.begin(115200);
   pinMode(REEDSWITCHPIN, INPUT_PULLUP);
-  Serial.println("DHTxx test!");
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(RECONNECTPIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+  Serial.println("");
+  Serial.println("#####TCC!#####");
+
+  WiFiManager wifiManager;
+
+  wifiManager.autoConnect(AP_SSID);
+
+  Serial.print("Connected to: ");
+  Serial.println(WiFi.SSID());
+  Serial.println();
+  blink(5);
 
   dht.begin();
 }
 
 void loop() {
+  int reconnect = digitalRead(RECONNECTPIN);
   // Wait a few seconds between measurements.
+  if (reconnect || WiFi.status() != WL_CONNECTED) {
+    blink(3);
+    WiFiManager wifiManager;
+    wifiManager.startConfigPortal(AP_SSID);
+    Serial.print("Connected to: ");
+    Serial.println(WiFi.SSID());
+    blink(5);
+  }
   delay(2000);
   int ldr_state = digitalRead(LDRPIN);
   int reed_state = digitalRead(REEDSWITCHPIN);
@@ -57,10 +80,21 @@ void loop() {
   Serial.print(" *C ");
   Serial.print(hif);
   Serial.println(" *F");
-  
+
   Serial.print("LDR:  ");
   Serial.println(ldr_state);
-  
+
   Serial.print("REED SWITCH:  ");
   Serial.println(reed_state);
+}
+
+void blink(int times) {
+  uint8_t i = 0;
+
+  for(i=0; i < times; i++) {
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(300);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(300);
+  }
 }
