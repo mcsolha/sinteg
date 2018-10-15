@@ -6,3 +6,8 @@
 #define RECONNECTPIN 5
 
 #define DHTTYPE DHT11   // DHT 11
+
+#define MQTT_SERVER "192.168.0.92"
+#define MQTT_PORT 1883
+#define MQTT_USERNAME "username"
+#define MQTT_PASSWORD "password"
