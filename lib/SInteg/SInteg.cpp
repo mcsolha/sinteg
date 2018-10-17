@@ -1,19 +1,19 @@
 #include <ESP8266WiFi.h>
-#include <sinteg.h>
-#include <base.h>
+#include <SInteg.h>
 
-void Sinteg::setDebug (bool _debug)
+void SInteg::setDebug (bool _debug)
 {
     debug = _debug;
 }
 
-Sinteg::Sinteg (WiFiClient _wclient)
+SInteg::SInteg (WiFiClient& _wclient)
 {
     debug = false;
+    base_topic = "sinteg/";
     client.setClient(_wclient);
 }
 
-void Sinteg::setup_wifi (
+void SInteg::setup_wifi (
     const char* _wifi_ssid,
     const char* _wifi_passwd
 )
@@ -33,12 +33,13 @@ void Sinteg::setup_wifi (
     }
 
     Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
+    Serial.print("WiFi connected to ");
+    Serial.println(WiFi.SSID());
+    Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 }
 
-void Sinteg::setup_mqtt (
+void SInteg::setup_mqtt (
     const char* _mqtt_username,
     const char* _mqtt_password,
     const char* _mqtt_server,
@@ -66,34 +67,41 @@ void Sinteg::setup_mqtt (
     Serial.println("MQTT set!");
 }
 
-void Sinteg::reconnect_mqtt ()
+void SInteg::reconnect_mqtt ()
 {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect("ESP8266Client", mqtt_username, mqtt_password)) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
+    int tries = 5;
+    // Loop until we're reconnected
+    while (!client.connected()) {
+        Serial.println("");
+        Serial.print("Attempting MQTT connection...");
+        // Attempt to connect
+        if (client.connect("SInteg", mqtt_username, mqtt_password)) {
+            Serial.println("SInteg connected to server");
+        } else {
+            Serial.print("failed, rc=");
+            Serial.print(client.state());
+            Serial.println(" try again in 5 seconds");
+            if (--tries == 0) {
+                Serial.println("Maximum tries reached, resetting SInteg");
+                ESP.restart();
+            }
+            // Wait 5 seconds before retrying
+            delay(5000);
+        }
     }
-  }
 }
 
-int Sinteg::isMQTTConnected () {
+boolean SInteg::isMQTTConnected ()
+{
     return client.connected();
 }
 
-boolean Sinteg::MQTTLoop () {
+boolean SInteg::MQTTLoop ()
+{
     return client.loop();
 }
 
-boolean Sinteg::MQTTPublish (const char* topic, const char* payload) {
+boolean SInteg::MQTTPublish (const char* topic, const char* payload)
+{
     return client.publish(topic, payload);
 }

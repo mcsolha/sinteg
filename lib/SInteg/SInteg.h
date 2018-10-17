@@ -4,9 +4,15 @@
 #ifndef SINTEG_H
 #define SINTEG_H
 
-class Sinteg {
+class SInteg
+{
+    friend class LDR_SInteg;
+    friend class ReedSwitch_SInteg;
+    friend class DHT_SInteg;
+
     private:
         PubSubClient client;
+        const char* base_topic;
         const char* mqtt_username;
         const char* mqtt_password;
         const char* mqtt_server;
@@ -16,7 +22,7 @@ class Sinteg {
         bool debug;
 
     public:
-        Sinteg (WiFiClient _wclient);
+        SInteg (WiFiClient& _wclient);
         void setup_mqtt (
             const char* _mqtt_username,
             const char* _mqtt_password,
@@ -28,7 +34,7 @@ class Sinteg {
             const char* _wifi_passwd
         );
         void reconnect_mqtt ();
-        int isMQTTConnected ();
+        boolean isMQTTConnected ();
         boolean MQTTLoop ();
         boolean MQTTPublish (const char* topic, const char* payload);
         void setDebug (bool _debug);
